@@ -10,35 +10,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
 
-      - name: Install dependencies
-        run: npm ci
+    - name: Install NPM Dependencies
+      run: npm ci
 
-      - name: Grant execute permission for gradlew
-        run: |
-          cd android
-          chmod +x ./gradlew
+    - name: Make gradlew executable
+      run: |
+        echo "Listing android folder:"
+        ls -l android
+        echo "Granting execute permission to gradlew"
+        chmod +x android/gradlew
+        ls -l android/gradlew
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Build Android Release APK
-        run: |
-          cd android
-          ./gradlew assembleRelease
+    - name: Build Android Release APK
+      run: |
+        cd android
+        ./gradlew clean assembleRelease --no-daemon
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: android/app/build/outputs/apk/release/app-release.apk
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release
+        path: android/app/build/outputs/apk/release/*.apk
