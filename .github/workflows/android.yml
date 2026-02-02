@@ -2,48 +2,49 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "master" ]
-  workflow_dispatch:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # اجازه اجرای دستی
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout repository
+    - name: 🔍 Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    - name: Setup Node.js
+    - name: 📦 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
 
-    - name: Install NPM Dependencies
+    - name: 🔧 Setup Expo and EAS
+      uses: expo/expo-github-action@v8
+      with:
+        eas-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+
+    - name: 📥 Install dependencies
       run: npm ci
 
-    - name: Make gradlew executable
+    - name: 🏗️ Build APK with EAS
+      run: eas build --platform android --profile preview --non-interactive --no-wait
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    - name: ✅ Build Started
       run: |
-        echo "Listing android folder:"
-        ls -l android
-        echo "Granting execute permission to gradlew"
-        chmod +x android/gradlew
-        ls -l android/gradlew
-
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-
-    - name: Build Android Release APK
-      run: |
-        cd android
-        ./gradlew clean assembleRelease --no-daemon
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-release
-        path: android/app/build/outputs/apk/release/*.apk
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✅ Build started successfully on EAS servers!"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "📱 Your APK is being built in the cloud"
+        echo "⏱️  Build time: ~10-20 minutes"
+        echo ""
+        echo "🔗 Check build status at:"
+        echo "   https://expo.dev/accounts/ali52771372/projects/damyar/builds"
+        echo ""
+        echo "📥 Download APK from Expo dashboard once complete"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
